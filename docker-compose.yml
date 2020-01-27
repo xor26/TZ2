@@ -1,0 +1,53 @@
+version: '3.3'
+
+
+services:
+  zoo:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zoo:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  producer:
+    build: ./kafka_producer
+    links:
+      - kafka:kafka
+
+  consumer:
+    build: ./kafka_consumer
+    volumes:
+      - ./test/:/app/test/
+    links:
+      - kafka:kafka
+
+
+
+# $KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic files --from-beginning
+# $KAFKA_HOME/bin/kafka-topics.sh --list --zookeeper zoo:2181
+
+
+#  flask:
+#    build: ./file_upload_server
+#    ports:
+#      - "5000:5000"
+#    volumes:
+#      - ./configs/:/app/configs/
+#      - ./file_storage/:/app/file_storage/
+#    environment:
+#      - FILE_DIR=file_storage/
+#      - KAFKA_HOST_NAME=kafka
+#      - KAFKA_HOST_PORT=9092
+#    links:
+#      - kafka:kafka
+
+#  bd:
+#    image: redis
