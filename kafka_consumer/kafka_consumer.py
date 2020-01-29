@@ -3,7 +3,7 @@ from json import loads
 import redis
 from configs.config import RedisConfig
 from configs.config import KafkaConfig
-
+import logging
 
 consumer = KafkaConsumer(
     "files",
@@ -15,12 +15,10 @@ consumer = KafkaConsumer(
 
 db = redis.Redis(host=RedisConfig.KAFKA_HOST_NAME, port=RedisConfig.KAFKA_HOST_PORT)
 
-print("Starting...")
-
+logging.info("Starting...")
 for message in consumer:
     message = message.value
     db.mset({message["file_name"]: message["file_path"]})
 
-    print("Received: " + str(message))
-    print("Stored: " + str(db.get(message["file_name"])
-                           ))
+    logging.info("Received: " + str(message))
+    logging.info("Stored: " + str(db.get(message["file_name"])))
