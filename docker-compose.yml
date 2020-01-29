@@ -17,37 +17,34 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  producer:
-    build: ./kafka_producer
-    links:
-      - kafka:kafka
-
   consumer:
     build: ./kafka_consumer
     volumes:
-      - ./test/:/app/test/
+      - ./configs/:/app/configs/
+    environment:
+      - REDIS_HOST_NAME=redis
+      - REDIS_HOST_PORT=6379
+      - KAFKA_HOST_NAME=kafka
+      - KAFKA_HOST_PORT=9092
     links:
       - kafka:kafka
 
+  flask:
+    build: ./file_upload_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./configs/:/app/configs/
+      - ./file_storage/:/app/file_storage/
+    environment:
+      - FILE_DIR=file_storage/
+      - KAFKA_HOST_NAME=kafka
+      - KAFKA_HOST_PORT=9092
+    links:
+      - kafka:kafka
 
-
-# $KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic files --from-beginning
-# $KAFKA_HOME/bin/kafka-topics.sh --list --zookeeper zoo:2181
-
-
-#  flask:
-#    build: ./file_upload_server
-#    ports:
-#      - "5000:5000"
-#    volumes:
-#      - ./configs/:/app/configs/
-#      - ./file_storage/:/app/file_storage/
-#    environment:
-#      - FILE_DIR=file_storage/
-#      - KAFKA_HOST_NAME=kafka
-#      - KAFKA_HOST_PORT=9092
-#    links:
-#      - kafka:kafka
-
-#  bd:
-#    image: redis
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
