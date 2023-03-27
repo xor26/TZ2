@@ -1,2 +1,2 @@
 kafka-python==1.4.7
-redis==3.3.11
+redis==4.5.3
